@@ -1,0 +1,25 @@
+package pkey
+
+// This file is generated using prim2pkey.tmpl. NEVER EDIT.
+
+import (
+	"strings"
+	"context"
+	"encoding/binary"
+	"encoding/hex"
+
+	. "github.com/takanoriyanagitani/go-avro-blob-partition-by-pkey/util"
+)
+
+func (w *StringKeyWriter) Write{{.TypeHint}}(key {{.Primitive}}) IO[string] {
+	var bufh [{{.PrimSize}}]byte
+	var buf [{{.HalfSize}}]byte
+	var bufs strings.Builder
+	return func(_ context.Context) (string, error) {
+		bufs.Reset()
+		binary.BigEndian.Put{{.EncodeFn}}(buf[:], {{.CastName}}(key))
+		hex.Encode(bufh[:], buf[:])
+		_, _ = bufs.Write(bufh[:]) // error is always nil or OOM
+		return bufs.String(), nil
+	}
+}
